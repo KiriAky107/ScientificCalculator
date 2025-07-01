@@ -5,27 +5,29 @@
 using namespace std;
 
 vector<Token> Tokenizer::run(const string& expr) {
-	expression = expr;
-	pos = 0;
-	vector<Token> tokens;
+
+    expression = expr;
+    pos = 0;
+    vector<Token> tokens;
 
     // 主循环：逐字符读取表达式
     while (pos < expression.length()) {
+
         skipWhitespace();// 跳过空白字符
         if (pos >= expression.length()) break;
 
         char current = expression[pos];
 
         // 如果是数字或一元负号开头，读取完整数字
-        if (is_dig(current) || (current == '-' && is_UMC(tokens))) 
+        if (is_dig(current) || (current == '-' && is_UMC(tokens)))
             tokens.push_back(readNumber());
 
         // 如果是字母，读取函数或变量名
-        else if (is_let(current)) 
+        else if (is_let(current))
             tokens.push_back(readIdentifier());
 
         // 否则读取操作符或括号
-        else 
+        else
             tokens.push_back(readOperatorOrParen());
     }
 
@@ -69,13 +71,18 @@ Token Tokenizer::readIdentifier() {
 
     //识别函数与变量（若后面紧跟‘（’则为函数，否则为变量）
     skipWhitespace();
-    if (pos < expression.length() && expression[pos] == '(') 
+    if (pos < expression.length() && expression[pos] == '(')
         return Token(TokenType::Function, name);
-    else 
+    else
         return Token(TokenType::Variable, name);
 }
 
 Token Tokenizer::readOperatorOrParen() {
+    if (expression[pos] == '/' && pos + 1 < expression.length() && expression[pos + 1] == '/') {
+        pos += 2;  // 跳过两个斜杠
+        return Token(TokenType::Operator, "//", 2, Associativity::Left);
+    }
+
     char c = expression[pos++];  // 读取当前字符并自增指针
 
     // 判断字符类型并创建相应 Token
@@ -84,7 +91,9 @@ Token Tokenizer::readOperatorOrParen() {
     case '-': return Token(TokenType::Operator, "-", 1, Associativity::Left);
     case '*': return Token(TokenType::Operator, "*", 2, Associativity::Left);
     case '/': return Token(TokenType::Operator, "/", 2, Associativity::Left);
+    case '%': return Token(TokenType::Operator, "%", 2, Associativity::Left);
     case '^': return Token(TokenType::Operator, "^", 3, Associativity::Right);
+    case '!': return Token(TokenType::Operator, "!", 4, Associativity::Right);
     case '(': return Token(TokenType::LeftParen, "(");
     case ')': return Token(TokenType::RightParen, ")");
     default:
@@ -111,5 +120,5 @@ bool Tokenizer::is_let(char c) const {
 
 bool Tokenizer::is_OpeCh(char c) const {
     // 判断是否为合法的运算符字符
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '%';
 }

@@ -20,6 +20,9 @@ private:
 
 	//应用于医院基本初等函数，如sin, cos, log
 	double apply_UF(const string& func, double x);
+
+	//应用于一元后缀运算符,如！
+	double apply_Fac(double x);
 };
 
 #endif

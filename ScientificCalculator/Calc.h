@@ -23,6 +23,11 @@ private:
 	static Tokenizer tokenizer;
 	static InfixToPostfix converter;
 	static PostfixEval evaluator;
+
+	//变量表
+	static std::unordered_map<std::string, double> vars;
+	//赋值判断和处理函数
+	static bool is_assign(const std::string& expr, std::string& varName, std::string& rightExpr);
 };
 
 #endif

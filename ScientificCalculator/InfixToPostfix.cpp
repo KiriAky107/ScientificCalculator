@@ -14,15 +14,20 @@ vector<Token> InfixToPostfix::run(const vector<Token>& infix) {
             //函数压入运算符栈（函数优先级最高）
             opStack.push(token);
         else if (token.is_ope()) {
-            //遇到运算符时，弹出栈中优先级更高或相同且结合性为左结合的运算符
-            while (!opStack.empty() && opStack.top().is_ope() &&
-                (precedence(opStack.top()) > precedence(token) ||
-                    (precedence(opStack.top()) == precedence(token) && associativity(token) == Associativity::Left))) {
-                output.push_back(opStack.top());
-                opStack.pop();
+            if (token.value == "!")
+                //后缀操作符直接入栈，不与前面的运算符进行比较
+                opStack.push(token);
+            else {
+                //遇到普通运算符时，弹出栈中优先级更高或相同且结合性为左结合的运算符
+                while (!opStack.empty() && opStack.top().is_ope() &&
+                    (precedence(opStack.top()) > precedence(token) ||
+                        (precedence(opStack.top()) == precedence(token) && associativity(token) == Associativity::Left))) {
+                    output.push_back(opStack.top());
+                    opStack.pop();
+                }
+                //当前运算符入栈
+                opStack.push(token);
             }
-            //当前运算符入栈
-            opStack.push(token);
         }
         else if (token.is_LP()) 
             //遇到左括号，直接入栈

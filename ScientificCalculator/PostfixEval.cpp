@@ -24,15 +24,25 @@ double PostfixEval::run(const std::vector<Token>& postfix, const unordered_map<s
 			}
 			else stk.push(it->second);
 		}
-		else if (token.is_ope()) {
-			//取出两个操作数，执行二元运算
-			if (stk.size() < 2)	throw runtime_error("操作数不足");
-			double b = stk.top();
-			stk.pop();
-			double a = stk.top();
-			stk.pop();
-			double res = apply_BO(token.value, a, b);
-			stk.push(res);
+		else if (token.is_ope()) {	
+			if (token.value == "!") {
+				if (stk.empty())
+					throw runtime_error("阶乘参数不足");
+				double x = stk.top(); stk.pop();
+				stk.push(apply_Fac(x));
+			}
+			else {
+				//取出两个操作数，执行二元运算
+				if (stk.size() < 2)
+					throw runtime_error("操作数不足");
+				double b = stk.top();
+				stk.pop();
+				double a = stk.top();
+				stk.pop();
+				double res = apply_BO(token.value, a, b);
+				stk.push(res);
+			}
+
 		}
 		else if (token.is_fun()) {
 			//取出一个操作数，执行一元基本初等函数的计算
@@ -63,9 +73,16 @@ double PostfixEval::apply_BO(const string& op, double a, double b) {
 	}
 	if (op == "^")	return pow(a, b);
 	if (op == "%") {
-		if (b == 0) throw runtime_error("模除数不能为零");
+		if (b == 0) 
+			throw runtime_error("模除数不能为零");
 		return std::fmod(a, b);
 	}
+	if (op == "//") {
+		if (b == 0) 
+			throw runtime_error("整除除数不能为零");
+		return std::floor(a / b);  // 向下取整整除
+	}
+
 	throw runtime_error("未知运算符：" + op);
 }
 
@@ -87,11 +104,41 @@ double PostfixEval::apply_UF(const string& func, double x) {
 			throw runtime_error("log参数必须大于0");
 		return log(x);
 	}
+	if (f == "ln") { 
+		if(x<=0)
+			throw runtime_error("ln参数必须大于0");
+		return log(x) / log(exp(1)); 
+	}
 	if (f == "exp")	return exp(x);
 	if (f == "abs")	return fabs(x);
-	if (f == "asin")	return asin(x);
-	if (f == "acos")	return acos(x);
+	if (f == "asin") {
+		if (x < -1 || x > 1) 
+			throw runtime_error("asin 参数必须在 [-1, 1] 范围内");
+		return std::asin(x);
+	}
+	if (f == "acos") {
+		if (x < -1 || x > 1)
+			throw runtime_error("asin 参数必须在 [-1, 1] 范围内");
+		return std::acos(x);
+	}
 	if (f == "atan")	return atan(x);
 
+	if (f == "floor") return std::floor(x);  // 向下取整
+	if (f == "ceil") return std::ceil(x);    // 向上取整
+	if (f == "round") return std::round(x);  // 四舍五入
+
 	throw runtime_error("未知函数：" + func);
+}
+
+double PostfixEval::apply_Fac(double x) {
+	if (x < 0)
+		throw runtime_error("负数不能求阶乘");
+	if (x != floor(x))
+		throw runtime_error("阶乘参数必须为整数");
+
+	int n = static_cast<int>(x);
+	double result = 1;
+	for (int i = 2; i <= n; ++i)
+		result *= i;
+	return result;
 }
